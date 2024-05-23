@@ -9,7 +9,11 @@ CONFIG_DIR = '/app/config'
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'config.yaml')
 TEMPLATE_FILE = '/app/templates/config.template.yaml'
 
-client = docker.from_env()
+# 获取 Docker 守护进程的 URL
+docker_host = os.getenv('DOCKER_HOST', 'unix:///var/run/docker.sock')
+
+# 创建 Docker 客户端
+client = docker.DockerClient(base_url=docker_host)
 
 def load_config():
     if not os.path.exists(CONFIG_FILE):
@@ -46,9 +50,12 @@ def evaluate_condition(condition):
     else:
         return is_container_running(condition)
 
-def should_start_by_schedule(schedule):
+def should_start_by_schedule(schedule, last_checked, delay):
     now = datetime.now()
-    return croniter(schedule, now - timedelta(minutes=1)).get_next(datetime) <= now
+    if croniter(schedule, now - timedelta(minutes=1)).get_next(datetime) <= now:
+        if (now - last_checked).total_seconds() >= delay:
+            return True
+    return False
 
 def main():
     config = load_config()
@@ -71,14 +78,12 @@ def main():
                 start_container(container)
                 continue
 
-            # 检查定时任务
-            if schedule and should_start_by_schedule(schedule):
-                if (now - last_checked[container]).total_seconds() >= delay:
-                    start_container(container)
-                    last_checked[container] = now
-                    continue
+            # 检查定时任务和延迟启动
+            if schedule and should_start_by_schedule(schedule, last_checked[container], delay):
+                start_container(container)
+                last_checked[container] = now
+                continue
 
-            # 检查延迟启动
             if delay > 0 and (now - last_checked[container]).total_seconds() >= delay:
                 start_container(container)
                 last_checked[container] = now
