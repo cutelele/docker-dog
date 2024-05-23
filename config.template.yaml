@@ -1,0 +1,11 @@
+# dependencies:
+#   container_a:
+#     depends_on:
+#       - "container_b | container_c"  # container_a 将在 container_b 或 container_c 任意一个启动后启动
+#     schedule: "*/5 * * * *"          # 支持Cron表达式的定时启动
+#     delay: 10                        # 支持延迟启动（秒）
+#   container_d:
+#     depends_on:
+#       - "container_e & container_f"  # container_d 将在 container_e 和 container_f 都启动后启动
+#     schedule: "0 0 * * *"            # 支持Cron表达式的定时启动
+#     delay: 20                        # 支持延迟启动（秒）
