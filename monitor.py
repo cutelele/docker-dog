@@ -9,11 +9,12 @@ CONFIG_DIR = '/app/config'
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'config.yaml')
 TEMPLATE_FILE = '/app/templates/config.template.yaml'
 
-# 获取 Docker 守护进程的 URL
-docker_host = os.getenv('DOCKER_HOST', 'unix:///var/run/docker.sock')
+# 设置 Docker 守护进程的地址和 API 版本
+os.environ['DOCKER_HOST'] = 'tcp://localhost:2375'
+os.environ['DOCKER_API_VERSION'] = '1.41'
 
 # 创建 Docker 客户端
-client = docker.DockerClient(base_url=docker_host)
+client = docker.from_env()
 
 def load_config():
     if not os.path.exists(CONFIG_FILE):
