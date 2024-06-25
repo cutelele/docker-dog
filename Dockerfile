@@ -8,7 +8,7 @@ WORKDIR /app
 COPY . /app
 
 # 安装所需的Python包
-# RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # 暴露端口（如果需要）
 # EXPOSE 8000
